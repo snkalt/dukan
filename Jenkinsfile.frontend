@@ -1,0 +1,67 @@
+pipeline {
+    agent any
+
+    environment {
+        IMAGE_NAME = 'dukan-frontend'
+        REGISTRY = 'your-docker-registry-url' // replace with AWS ECR or Docker Hub
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Install & Build') {
+            steps {
+                dir('dukan-frontend') {
+                    sh 'npm install'
+                    sh 'npm run build'
+                }
+            }
+        }
+
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv('MySonarQubeServer') {
+                    dir('dukan-frontend') {
+                        sh 'sonar-scanner -Dsonar.projectKey=dukan-frontend -Dsonar.sources=. -Dsonar.language=js -Dsonar.sourceEncoding=UTF-8'
+                    }
+                }
+            }
+        }
+
+        stage('Docker Build') {
+            steps {
+                dir('dukan-frontend') {
+                    sh "docker build -t ${IMAGE_NAME}:latest ."
+                }
+            }
+        }
+
+        stage('Trivy Scan') {
+            steps {
+                sh "trivy image ${IMAGE_NAME}:latest"
+            }
+        }
+
+        stage('Push Image') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'docker-creds', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+                    sh """
+                      echo $PASSWORD | docker login -u $USERNAME --password-stdin ${REGISTRY}
+                      docker tag ${IMAGE_NAME}:latest ${REGISTRY}/${IMAGE_NAME}:latest
+                      docker push ${REGISTRY}/${IMAGE_NAME}:latest
+                    """
+                }
+            }
+        }
+
+        stage('Deploy to ArgoCD') {
+            steps {
+                sh "argocd app sync dukan-frontend"
+            }
+        }
+    }
+}
