@@ -1,0 +1,40 @@
+<div class="container mt-5">
+  <h2>Signup</h2>
+  <form [formGroup]="signupForm" (ngSubmit)="onSubmit()">
+    <div class="mb-3">
+      <label>Name</label>
+      <input class="form-control" formControlName="name" />
+    </div>
+    <div class="mb-3">
+      <label>Email</label>
+      <input type="email" class="form-control" formControlName="email" />
+    </div>
+    <div class="mb-3">
+      <label>Phone</label>
+      <input class="form-control" formControlName="phone" />
+    </div>
+    <div class="mb-3">
+      <label>Gender</label><br>
+      <div class="form-check form-check-inline">
+        <input type="radio" class="form-check-input" formControlName="gender" value="Male" /> Male
+      </div>
+      <div class="form-check form-check-inline">
+        <input type="radio" class="form-check-input" formControlName="gender" value="Female" /> Female
+      </div>
+    </div>
+    <div class="mb-3">
+      <label>Date of Birth</label>
+      <input type="date" class="form-control" formControlName="dob" />
+    </div>
+    <div class="mb-3">
+      <label>Password</label>
+      <input type="password" class="form-control" formControlName="password" />
+    </div>
+    <div class="mb-3">
+      <label>Confirm Password</label>
+      <input type="password" class="form-control" formControlName="confirmPassword" />
+    </div>
+    <div class="text-danger mb-2" *ngIf="errorMessage">{{ errorMessage }}</div>
+    <button class="btn btn-primary">Signup</button>
+  </form>
+</div>
